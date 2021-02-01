@@ -1,4 +1,3 @@
-  console.log("hello");
   const startButton = document.getElementById('start-btn')
   const gameOver = document.getElementById('wrongAnswer')
   const questionContainerElement = document.getElementById('randomQuestions')
@@ -9,29 +8,22 @@
   var timeTaken,interval;
   var winnerName = document.createElement('div');
   let shuffledQuestions, currentQuestionIndex;
-  // var seconds;
 
   function startTimer(){
     let timer = document.getElementById("timer").classList.remove('hide');
     var seconds = document.getElementById("timer").innerHTML;
     interval = setInterval(function () {
-          if(seconds<=0){
+          if (seconds<=0) {
             gameOver.style.display = 'block';
             let timer = document.getElementById("timer").classList.add('hide');
             questionContainerElement.classList.add('hide');
             userDisplay.classList.add('hide');
-          }
-          else{
-            // console.log(seconds);
+          } else {
             document.getElementById("timer").innerHTML = seconds;
             seconds--;
             if (currentQuestionIndex + 1 === 4) {
-              // gameOver.style.display = 'block';
-              console.log("idx", currentQuestionIndex);
-              // console.log();
               results.classList.remove('hide');
               timeTaken = seconds;
-              console.log("sec",timeTaken);
               seconds = 0;
             }
           }
@@ -48,30 +40,27 @@
       users[i] = parseFloat((Math.random() * 14 ).toFixed(2));
     users[5] = (15-timeTaken);
     let usersArray = Object.entries(users).sort((a,b)=>{return a[1]-b[1]})
-    console.log("users",usersArray);
     let showResults = document.getElementById('showResults');
     showResults.classList.remove('hide');
         for (var j = 1; j<7;j++) {
-            if(usersArray[j-1][1] == 15-timeTaken){
+            if (usersArray[j-1][1] == 15-timeTaken) {
               let div = document.createElement('div');
               div.innerHTML = "YOU" + " : " + usersArray[j-1][1];
               showResults.appendChild(div);
-            }
-            else{
+            } else {
               let div = document.createElement('div');
               div.innerHTML = "PLAYER" + usersArray[j-1][0] + " : " + usersArray[j-1][1];
               showResults.appendChild(div);
             }
           }
-          if(usersArray[0][1] == 15-timeTaken){
+          if (usersArray[0][1] == 15-timeTaken) {
             a = "YOU";
             b = usersArray[0][1];
-          }else{
+          } else {
               a = usersArray[0][0];
               b = usersArray[0][1];
           }
           showResults.childNodes[5].style.color="white";
-          console.log("gdekus",showResults.childNodes[5])
 
           var div1 = document.createElement('div');
           div1.innerHTML = "PLAYER " + a;
@@ -80,7 +69,6 @@
           var winnerButton = document.getElementById('winner');
           winnerButton.onclick = function(){
             showResults.style.display = 'none';
-            // gameOver.style.display = 'none';
             gameOver.classList.add('hide');
             var display = document.getElementById('displayWinner');
             display.classList.remove('hide');
@@ -91,16 +79,22 @@
             console.log('a',a);
             console.log('b',b);
           }
-      // document.getElementById('displayWinner').appendChild(showResults.childNodes[5]);
-
   }
+  function shuffleArray(array) {
+   for (var i = array.length - 1; i > 0; i--) {
+       var j = Math.floor(Math.random() * (i + 1));
+
+       var temp = array[i];
+       array[i] = array[j];
+       array[j] = temp;
+   }
+
+   return array;
+}
 
   function startGame() {
     console.log("started");
     startButton.classList.add('hide');
-    // gameOver.style.display = 'none';
-    shuffledQuestions = questions.sort(() => Math.random() - .5);
-    console.log(shuffledQuestions);
     currentQuestionIndex = 0;
     questionContainerElement.classList.remove('hide');
     userDisplay.classList.remove('hide');
@@ -109,17 +103,69 @@
 
   function setNextQuestion() {
     resetState();
-    showQuestion(shuffledQuestions[currentQuestionIndex]);
+    showQuestion();
   }
 
-  function showQuestion(question) {
-    questionElement.innerText = question.question
-    question.answers.forEach(answer => {
+  function showQuestion() {
+
+    //randomQuestions generation
+    var arithmeticOperators = [{
+          sign: "+",
+          method: function(a,b){ return parseFloat((a + b).toFixed(2)); }
+      },
+      {
+          sign: "-",
+          method: function(a,b){ return parseFloat((a - b).toFixed(2)); }
+      },
+      {
+          sign: "*",
+          method: function(a,b){ return parseFloat((a * b).toFixed(2)); }
+      },
+      {
+          sign: "/",
+          method: function(a,b){ return parseFloat((a / b).toFixed(2)); }
+      }
+    ];
+    var numbers = [0, 1, 2 , 3, 4, 5, 6, 7, 8, 9];
+
+    var operatorSelect = Math.floor(Math.random()*arithmeticOperators.length);
+    var numIdx1 = Math.floor(Math.random()*(numbers.length));
+    var number1= numbers[numIdx1];
+    // to get unique numbers
+    numbers.splice(numIdx1, 1);
+
+    var numIdx2 = Math.floor(Math.random()*(numbers.length));
+    var number2= numbers[numIdx2];
+    numbers.splice(numIdx2, 1);
+    var options = [4, 1, 7];
+
+    if (options.includes(arithmeticOperators[operatorSelect].method(number1, number2))) {
+      options.push(15);
+    } else {
+      options.push(arithmeticOperators[operatorSelect].method(number1, number2));
+    }
+
+    var randomOptions = shuffleArray(options);
+    var questionsAll = {
+        question: `what is ${number1} ${arithmeticOperators[operatorSelect].sign} ${number2} ?`,
+        answer: arithmeticOperators[operatorSelect].method(number1, number2),
+        optionsArray: [
+          options[0],
+          options[1],
+          options[2],
+          options[3]
+        ]
+    }
+
+    //questions are getting displayed here
+    questionElement.innerText = questionsAll.question
+    questionsAll.optionsArray.forEach(answer => {
       const button = document.createElement('button')
-      button.innerText = answer.text;
+      button.innerText = answer;
       button.classList.add('btn')
-      if (answer.correct) {
-        button.dataset.correct = answer.correct;
+      if (answer == questionsAll.answer) {
+        console.log("if cond");
+        button.dataset.correct = true;
       }
       button.addEventListener('click', selectAnswer)
       answerButtonsElement.appendChild(button)
@@ -136,93 +182,15 @@
   function selectAnswer(e) {
     // e.target will give whatever we will select
     const selectedButton = e.target;
-    console.log('target', e.target);
-    const correct = selectedButton.dataset.correct;
-    if (correct) {
+    if (selectedButton.dataset.correct) {
       currentQuestionIndex++;
       console.log("true");
       setNextQuestion();
-    }
-    else{
-      gameOver.classList.remove('hide');
-      timer.classList.add('hide');
-      questionContainerElement.classList.add('hide');
-      userDisplay.classList.add('hide');
-      result.classList.add('hide');
-      console.log("false");
-    }
+    } else {
+        gameOver.classList.remove('hide');
+        timer.classList.add('hide');
+        questionContainerElement.classList.add('hide');
+        userDisplay.classList.add('hide');
+        results.classList.add('hide');
+      }
   }
-  const questions = [
-    {
-      question: 'What is 3 + 4 ?',
-      answers: [
-        { text: '7', correct: 1 },
-        { text: '3', correct: 0 },
-        { text: '8', correct: 0 },
-        { text: '9', correct: 0 }
-      ]
-    },
-    {
-      question: 'what is 5 * 6 ?',
-      answers: [
-        { text: '30', correct: 1 },
-        { text: '20', correct: 0 },
-        { text: '10', correct: 0 },
-        { text: '5', correct: 0 }
-      ]
-    },
-    {
-      question: 'what is 8 - 6 ?',
-      answers: [
-        { text: '2', correct: 1 },
-        { text: '3', correct: 0 },
-        { text: '4', correct: 0 },
-        { text: '5', correct: 0 }
-      ]
-    },
-    {
-      question: 'What is 4 * 2?',
-      answers: [
-        { text: '6', correct: 0 },
-        { text: '8', correct: 1 },
-        { text: '5', correct: 0 },
-        { text: '2', correct: 0 }
-      ]
-    },
-    {
-      question: 'What is 1 + 3?',
-      answers: [
-        { text: '6', correct: 0 },
-        { text: '4', correct: 1 },
-        { text: '5', correct: 0 },
-        { text: '2', correct: 0 }
-      ]
-    },
-    {
-      question: 'What is 10 - 5?',
-      answers: [
-        { text: '6', correct: 0 },
-        { text: '5', correct: 1 },
-        { text: '7', correct: 0 },
-        { text: '2', correct: 0 }
-      ]
-    },
-    {
-        question: 'What is 12/4?',
-        answers: [
-          { text: '3', correct: 1 },
-          { text: '8', correct: 0 },
-          { text: '5', correct: 0 },
-          { text: '2', correct: 0 }
-        ]
-    },
-    {
-      question: 'What is 9 / 3?',
-      answers: [
-        { text: '6', correct: 0 },
-        { text: '3', correct: 1 },
-        { text: '5', correct: 0 },
-        { text: '2', correct: 0 }
-      ]
-    },
-  ]
